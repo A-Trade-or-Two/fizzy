@@ -9,16 +9,21 @@ Rails.application.configure do
   # For other configuration options, consult the Action Mailer documentation.
   if smtp_address = ENV["SMTP_ADDRESS"].presence
     config.action_mailer.delivery_method = :smtp
-    config.action_mailer.smtp_settings = {
+    smtp_settings = {
       address: smtp_address,
       port: ENV.fetch("SMTP_PORT", ENV["SMTP_TLS"] == "true" ? "465" : "587").to_i,
       domain: ENV.fetch("SMTP_DOMAIN", nil),
-      user_name: ENV.fetch("SMTP_USERNAME", nil),
-      password: ENV.fetch("SMTP_PASSWORD", nil),
-      authentication: ENV.fetch("SMTP_AUTHENTICATION", "plain"),
       tls: ENV["SMTP_TLS"] == "true",
       openssl_verify_mode: ENV["SMTP_SSL_VERIFY_MODE"]
     }
+
+    if ENV["SMTP_USERNAME"].present?
+      smtp_settings[:user_name] = ENV["SMTP_USERNAME"]
+      smtp_settings[:password] = ENV.fetch("SMTP_PASSWORD", nil)
+      smtp_settings[:authentication] = ENV.fetch("SMTP_AUTHENTICATION", "plain")
+    end
+
+    config.action_mailer.smtp_settings = smtp_settings
   end
 
   # Base URL for links in emails and other external references.
